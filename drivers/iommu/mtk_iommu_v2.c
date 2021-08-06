@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2019 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Author: Yong Wu <yong.wu@mediatek.com>
  *
  * This program is free software; you can redistribute it and/or modify
@@ -4166,7 +4167,7 @@ static int mtk_iommu_hw_init(struct mtk_iommu_data *data)
 
 	writel_relaxed(F_MMU_TFRP_PA_SET(data->protect_base, data->enable_4GB),
 		   data->base + REG_MMU_TFRP_PADDR);
-	writel_relaxed(0x100, data->base + REG_MMU_DCM_DIS);
+	// writel_relaxed(0, data->base + REG_MMU_DCM_DIS);
 
 	//writel_relaxed(0, data->base + REG_MMU_STANDARD_AXI_MODE);
 
