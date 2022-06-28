@@ -1,5 +1,6 @@
 /*
  * Copyright (c) 2014 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  * Author: James Liao <jamesjj.liao@mediatek.com>
  *
  * This program is free software; you can redistribute it and/or modify

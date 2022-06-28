@@ -2216,7 +2216,6 @@ static const struct cmd_fn common_cmds[] = {
 	CMDFN("reg_write", clkdbg_reg_write),
 	CMDFN("reg_set", clkdbg_reg_set),
 	CMDFN("reg_clr", clkdbg_reg_clr),
-#endif /* CONFIG_MTK_ENG_BUILD */
 	CMDFN("show_flags", clkdbg_show_flags),
 	CMDFN("set_flag", clkdbg_set_flag),
 	CMDFN("clr_flag", clkdbg_clr_flag),
