@@ -1,4 +1,9 @@
 # SPDX-License-Identifier: GPL-2.0
+
+ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach/ \
+             -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/ \
+             -I$(srctree)/drivers/misc/mediatek/include/mt-plat \
+
 obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
 obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
 obj-$(CONFIG_DRM_PANEL_INNOLUX_P079ZCA) += panel-innolux-p079zca.o
@@ -39,6 +44,9 @@ obj-$(CONFIG_DRM_PANEL_K6873V1_64_ALPHA_VDO_02) += k6873v1_64_alpha/panel-k6873v
 obj-$(CONFIG_DRM_PANEL_HX_NT36682C_DPHY_VDO) += panel-hx-nt36682c-dphy-vdo.o
 obj-$(CONFIG_DRM_PANEL_TIANMA_NT36672C_VDO_120HZ) += panel-tianma-nt36672c-vdo-120hz.o
 obj-$(CONFIG_DRM_PANEL_TIANMA_NT36672C_VDO_144HZ) += panel-tianma-nt36672c-vdo-144hz.o
+obj-$(CONFIG_DRM_PANEL_J22_42_02_0A_VDO) += panel_j22_42_02_0a_vdo.o
+obj-$(CONFIG_DRM_PANEL_J22_43_03_0B_VDO) += panel_j22_43_03_0b_vdo.o
+obj-$(CONFIG_DRM_PANEL_J22_43_03_0C_VDO) += panel_j22_43_03_0c_vdo.o
 obj-$(CONFIG_DRM_PANEL_K6853V1_64_ALPHA_VDO_01) += k6853v1_64_alpha/panel-k6853v1-64-alpha-vdo-01.o
 obj-$(CONFIG_DRM_PANEL_K6853V1_64_ALPHA_VDO_02) += k6853v1_64_alpha/panel-k6853v1-64-alpha-vdo-02.o
 obj-$(CONFIG_DRM_PANEL_K6853V1_64_ALPHA_VDO_02) += k6853v1_64_alpha/panel-k6853v1-64-alpha-vdo-03.o
