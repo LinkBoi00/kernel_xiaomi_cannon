@@ -6,4 +6,4 @@ config TOUCHSCREEN_GOODIX_BRL_SPI
 	depends on TOUCHSCREEN_GOODIX_BRL
 	bool "support SPI bus connection" 
 	help
-		Say Y here if the touchscreen is connected via SPI bus.
+	  Say Y here if the touchscreen is connected via SPI bus.
