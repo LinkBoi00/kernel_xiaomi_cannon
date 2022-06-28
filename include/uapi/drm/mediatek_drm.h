@@ -17,7 +17,6 @@
 
 #include <drm/drm.h>
 
-
 #define MTK_SUBMIT_NO_IMPLICIT   0x0 /* disable implicit sync */
 #define MTK_SUBMIT_IN_FENCE   0x1 /* enable input fence */
 #define MTK_SUBMIT_OUT_FENCE  0x2  /* enable output fence */
@@ -439,7 +438,6 @@ struct DISP_PQ_PARAM {
 #define DRM_MTK_GET_SESSION_INFO	0x0A
 #define DRM_MTK_SEC_HND_TO_GEM_HND	0x0B
 #define DRM_MTK_GET_MASTER_INFO		0x0C
-#define DRM_MTK_CRTC_GETSFFENCE         0x0D
 #define DRM_MTK_MML_GEM_SUBMIT         0x0E
 #define DRM_MTK_SET_MSYNC_PARAMS         0x0F
 #define DRM_MTK_GET_MSYNC_PARAMS         0x10
@@ -620,7 +618,6 @@ enum MTK_DRM_DISP_FEATURE {
 	DRM_DISP_FEATURE_OUTPUT_ROTATED = 0x00000010,
 	DRM_DISP_FEATURE_THREE_SESSION = 0x00000020,
 	DRM_DISP_FEATURE_FBDC = 0x00000040,
-	DRM_DISP_FEATURE_SF_PRESENT_FENCE = 0x00000080,
 	DRM_DISP_FEATURE_PQ_34_COLOR_MATRIX = 0x00000100,
 	/*Msync*/
 	DRM_DISP_FEATURE_MSYNC2_0 = 0x00000200,
@@ -739,9 +736,6 @@ struct mtk_drm_pq_caps_info {
 #define DRM_IOCTL_MTK_CRTC_GETFENCE	DRM_IOWR(DRM_COMMAND_BASE + \
 		DRM_MTK_CRTC_GETFENCE, struct drm_mtk_fence)
 
-#define DRM_IOCTL_MTK_CRTC_GETSFFENCE	DRM_IOWR(DRM_COMMAND_BASE + \
-		DRM_MTK_CRTC_GETSFFENCE, struct drm_mtk_fence)
-
 #define DRM_IOCTL_MTK_SET_MSYNC_PARAMS    DRM_IOWR(DRM_COMMAND_BASE + \
 		DRM_MTK_SET_MSYNC_PARAMS, struct msync_parameter_table)
 
@@ -833,7 +827,6 @@ struct mtk_drm_pq_caps_info {
 /* AAL IOCTL */
 #define AAL_HIST_BIN            33	/* [0..32] */
 #define AAL_DRE_POINT_NUM       29
-#define AAL_DRE_BLK_NUM			(16)
 
 struct DISP_AAL_INITREG {
 	/* DRE */
@@ -868,10 +861,6 @@ struct DISP_AAL_INITREG {
 	int act_win_y_end;
 	int blk_num_x_start;
 	int blk_num_x_end;
-	int dre0_blk_num_x_start;
-	int dre0_blk_num_x_end;
-	int dre1_blk_num_x_start;
-	int dre1_blk_num_x_end;
 	int blk_cnt_x_start;
 	int blk_cnt_x_end;
 	int blk_num_y_start;
@@ -908,10 +897,8 @@ struct DISP_AAL_DISPLAY_SIZE {
 struct DISP_AAL_HIST {
 	unsigned int serviceFlags;
 	int backlight;
-	int aal0_colorHist;
-	int aal1_colorHist;
-	unsigned int aal0_maxHist[AAL_HIST_BIN];
-	unsigned int aal1_maxHist[AAL_HIST_BIN];
+	int colorHist;
+	unsigned int maxHist[AAL_HIST_BIN];
 	int requestPartial;
 	unsigned long long dre30_hist;
 	unsigned int panel_type;
