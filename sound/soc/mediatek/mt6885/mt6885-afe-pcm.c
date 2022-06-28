@@ -34,7 +34,6 @@
 
 #if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP)
 #include "../audio_dsp/mtk-dsp-common.h"
-#include <adsp_core.h>
 #endif
 
 #if defined(CONFIG_SND_SOC_MTK_SCP_SMARTPA)
@@ -226,25 +225,29 @@ int mt6885_fe_trigger(struct snd_pcm_substream *substream, int cmd,
 		}
 
 		/* set memif disable */
-#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP)
-		if (runtime->stop_threshold != ~(0U) || (!is_adsp_system_running()) ||
-		    mtk_audio_get_adsp_reset_status())
+#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP) ||\
+	defined(CONFIG_MTK_VOW_BARGE_IN_SUPPORT)
+		if (runtime->stop_threshold == ~(0U))
+			ret = 0;
+		else
+/* only when adsp enable using hw semaphore to set memif */
+#if defined(CONFIG_MTK_AUDIODSP_SUPPORT)
 			ret = mtk_dsp_memif_set_disable(afe, id);
 #else
-		/* barge-in set stop_threshold == ~(0U), memif is set by scp */
-		if (runtime->stop_threshold != ~(0U))
 			ret = mtk_memif_set_disable(afe, id);
 #endif
-
+#else
+		ret = mtk_memif_set_disable(afe, id);
+#endif
 		if (ret) {
 			dev_err(afe->dev, "%s(), error, id %d, memif enable, ret %d\n",
 				__func__, id, ret);
 		}
 
 		/* disable interrupt */
-#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP)
-		if (runtime->stop_threshold != ~(0U) || (!is_adsp_system_running()) ||
-		    mtk_audio_get_adsp_reset_status())
+#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP) ||\
+	defined(CONFIG_MTK_VOW_BARGE_IN_SUPPORT)
+		if (runtime->stop_threshold != ~(0U))
 			mtk_dsp_irq_set_disable(afe, irq_data);
 #else
 		/* barge-in set stop_threshold == ~(0U), interrupt is set by scp */
@@ -257,7 +260,10 @@ int mt6885_fe_trigger(struct snd_pcm_substream *substream, int cmd,
 #endif
 		/* clear pending IRQ */
 		/* barge-in set stop_threshold == ~(0U), interrupt is set by scp */
+#if defined(CONFIG_SND_SOC_MTK_AUDIO_DSP) ||\
+	defined(CONFIG_MTK_VOW_BARGE_IN_SUPPORT)
 		if (runtime->stop_threshold != ~(0U))
+#endif
 			regmap_write(afe->regmap, irq_data->irq_clr_reg,
 				     1 << irq_data->irq_clr_shift);
 		return ret;

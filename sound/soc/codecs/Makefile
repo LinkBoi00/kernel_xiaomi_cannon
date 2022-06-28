@@ -487,10 +487,12 @@ obj-$(CONFIG_SND_SOC_WM9090)	+= snd-soc-wm9090.o
 obj-$(CONFIG_SND_SOC_WM9705)	+= snd-soc-wm9705.o
 obj-$(CONFIG_SND_SOC_WM9712)	+= snd-soc-wm9712.o
 obj-$(CONFIG_SND_SOC_WM9713)	+= snd-soc-wm9713.o
-obj-$(CONFIG_SND_SOC_WM_ADSP)	+= snd-soc-wm-adsp.o
 obj-$(CONFIG_SND_SOC_WM_HUBS)	+= snd-soc-wm-hubs.o
 obj-$(CONFIG_SND_SOC_ZX_AUD96P22) += snd-soc-zx-aud96p22.o
 obj-$(CONFIG_SND_SOC_TFA9874)	+= tfa98xx/
+obj-$(CONFIG_SND_SOC_CS35L41)	+= cs35l41/
+obj-$(CONFIG_SND_SOC_AW87359)	+= aw87359/
+obj-$(CONFIG_SND_SOC_AW87519)	+= aw87519/
 
 # Amp
 obj-$(CONFIG_SND_SOC_DIO2125)	+= snd-soc-dio2125.o
@@ -504,6 +506,9 @@ obj-$(CONFIG_SND_SOC_SMARTPAINFO)	+= snd-soc-smartpa-info.o
 obj-$(CONFIG_SND_SOC_AW87339)	+= aw87339/
 obj-$(CONFIG_SND_SOC_AS33970)	+= as33970/
 obj-$(CONFIG_SND_SOC_CS35L41)	+= cs35l41/
+# Begonia Audio SmartPA Begin
+obj-$(CONFIG_SND_SOC_TFA9874)	+= tfa98xx/
+# Begonia Audio SmartPA End
 
 ifneq (, $(filter y,$(CONFIG_SND_SOC_MT6358) $(CONFIG_SND_SOC_MT6366)))
   MTK_PLATFORM := $(subst ",,$(CONFIG_MTK_PLATFORM))

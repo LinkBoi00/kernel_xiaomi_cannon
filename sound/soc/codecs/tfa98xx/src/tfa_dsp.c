@@ -3294,7 +3294,7 @@ enum tfa_error tfa_dev_stop(struct tfa_device *tfa)
 		manstate = TFA_GET_BF(tfa, MANSTATE);
 		retry++;
 	}
-	//pr_debug("exit....  MANSTATE=%d\n", manstate);
+	pr_debug("exit....  MANSTATE=%d\n", manstate);
 
 error_exit:
 	if (err != Tfa98xx_Error_Ok) {
