@@ -629,6 +629,7 @@ enum MTK_DRM_DISP_FEATURE {
 	DRM_DISP_FEATURE_IOMMU = 0x00001000,
 };
 
+#ifndef CONFIG_DRM_MEDIATEK_CANNON
 enum mtk_mmsys_id {
 	MMSYS_MT2701 = 0x2701,
 	MMSYS_MT2712 = 0x2712,
@@ -645,6 +646,7 @@ enum mtk_mmsys_id {
 	MMSYS_MT6895 = 0x6895,
 	MMSYS_MAX,
 };
+#endif
 
 struct mtk_drm_disp_caps_info {
 	unsigned int hw_ver;
@@ -908,20 +910,29 @@ struct DISP_AAL_DISPLAY_SIZE {
 struct DISP_AAL_HIST {
 	unsigned int serviceFlags;
 	int backlight;
+#ifdef CONFIG_DRM_MEDIATEK_CANNON
+	int colorHist;
+	unsigned int maxHist[AAL_HIST_BIN];
+#else
 	int aal0_colorHist;
 	int aal1_colorHist;
 	unsigned int aal0_maxHist[AAL_HIST_BIN];
 	unsigned int aal1_maxHist[AAL_HIST_BIN];
+#endif
 	int requestPartial;
 	unsigned long long dre30_hist;
 	unsigned int panel_type;
 	int essStrengthIndex;
 	int ess_enable;
 	int dre_enable;
+#ifdef CONFIG_DRM_MEDIATEK_CANNON
+	unsigned int yHist[AAL_HIST_BIN];
+#else
 	unsigned int aal0_yHist[AAL_HIST_BIN];
 	unsigned int aal1_yHist[AAL_HIST_BIN];
 	unsigned int MaxHis_denominator_pipe0[AAL_DRE_BLK_NUM];
 	unsigned int MaxHis_denominator_pipe1[AAL_DRE_BLK_NUM];
+#endif
 };
 
 #define DRM_IOCTL_MTK_AAL_INIT_REG	DRM_IOWR(DRM_COMMAND_BASE + \
