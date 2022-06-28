@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 2 as
@@ -40,8 +41,12 @@
 #include <linux/ktime.h>
 /* ------------------------- */
 
+#include <archcounter_timesync.h>
+
 #include "lens_info.h"
 #include "lens_list.h"
+
+#include <linux/regulator/consumer.h>
 
 #define AF_DRVNAME "SUB2AF"
 
@@ -233,6 +238,8 @@ static void AFRegulatorCtrl(int Stage)
 }
 #endif
 
+void TAFRegulatorCtrl(int Stage);
+
 void SUB2AF_PowerDown(void)
 {
 
@@ -273,6 +280,55 @@ static long AF_SetMotorName(__user struct stAF_MotorName *pstMotorName)
 			break;
 		}
 	}
+	return i4RetValue;
+}
+
+static long AF_ControlParam(unsigned long a_u4Param)
+{
+	long i4RetValue = -1;
+	__user struct stAF_CtrlCmd *pCtrlCmd =
+			(__user struct stAF_CtrlCmd *)a_u4Param;
+	struct stAF_CtrlCmd CtrlCmd;
+
+	if (copy_from_user(&CtrlCmd, pCtrlCmd, sizeof(struct stAF_CtrlCmd)))
+		LOG_INF("copy to user failed\n");
+
+	switch (CtrlCmd.i8CmdID) {
+	case CONVERT_CCU_TIMESTAMP:
+		{
+		long long monotonicTime = 0;
+		long long hwTickCnt     = 0;
+
+		hwTickCnt     = CtrlCmd.i8Param[0];
+		monotonicTime = archcounter_timesync_to_monotonic(hwTickCnt);
+		do_div(monotonicTime, 1000); /* ns to us */
+		CtrlCmd.i8Param[0] = monotonicTime;
+
+		hwTickCnt     = CtrlCmd.i8Param[1];
+		monotonicTime = archcounter_timesync_to_monotonic(hwTickCnt);
+		do_div(monotonicTime, 1000); /* ns to us */
+		CtrlCmd.i8Param[1] = monotonicTime;
+
+		#if 0
+		hwTickCnt     = arch_counter_get_cntvct(); /* Global timer */
+		monotonicTime = archcounter_timesync_to_monotonic(hwTickCnt);
+		do_div(monotonicTime, 1000); /* ns to us */
+		CtrlCmd.i8Param[1] = monotonicTime;
+		#endif
+		}
+		i4RetValue = 1;
+		break;
+	default:
+		i4RetValue = -1;
+		break;
+	}
+
+	if (i4RetValue > 0) {
+		if (copy_to_user(pCtrlCmd, &CtrlCmd,
+			sizeof(struct stAF_CtrlCmd)))
+			LOG_INF("copy to user failed\n");
+	}
+
 	return i4RetValue;
 }
 
@@ -393,12 +449,22 @@ static long AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 		break;
 
 #if !defined(CONFIG_MTK_LEGACY)
-	case AFIOC_S_SETPOWERCTRL:
-		AFRegulatorCtrl(0);
+	#if defined(CONFIG_MACH_MT6885)
+		case AFIOC_S_SETPOWERCTRL:
+			TAFRegulatorCtrl(0);
 
-		if (a_u4Param > 0)
-			AFRegulatorCtrl(1);
-		break;
+			if (a_u4Param > 0)
+				TAFRegulatorCtrl(1);
+			break;
+	#else
+		case AFIOC_S_SETPOWERCTRL:
+			AFRegulatorCtrl(0);
+
+			if (a_u4Param > 0)
+				AFRegulatorCtrl(1);
+			break; 
+	#endif
+
 #endif
 
 	case AFIOC_G_OISPOSINFO:
@@ -431,12 +497,18 @@ static long AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command,
 		}
 		break;
 
-	default:
-		if (g_pstAF_CurDrv) {
-			if (g_pstAF_CurDrv->pAF_Ioctl)
+	case AFIOC_X_CTRLPARA:
+		if (AF_ControlParam(a_u4Param) <= 0) {
+			if (g_pstAF_CurDrv)
 				i4RetValue = g_pstAF_CurDrv->pAF_Ioctl(
 					a_pstFile, a_u4Command, a_u4Param);
 		}
+		break;
+
+	default:
+		if (g_pstAF_CurDrv)
+			i4RetValue = g_pstAF_CurDrv->pAF_Ioctl(
+				a_pstFile, a_u4Command, a_u4Param);
 		break;
 	}
 
@@ -454,6 +526,91 @@ static long AF_Ioctl_Compat(struct file *a_pstFile, unsigned int a_u4Command,
 
 	return i4RetValue;
 }
+#endif
+
+#if defined(CONFIG_MACH_MT6885)
+#if !defined(CONFIG_MTK_LEGACY)
+static struct regulator *regVCAMTAF;
+static int g_regVCAMTAFEn;
+
+void TAFRegulatorCtrl(int Stage)
+{
+	LOG_INF("AFIOC_S_SETPOWERCTRL regulator_put %p\n", regVCAMTAF);
+
+	if (Stage == 0) {
+		if (regVCAMTAF == NULL) {
+			struct device_node *node, *kd_node;
+
+			/* check if customer camera node defined */
+			node = of_find_compatible_node(
+				NULL, NULL, "mediatek,camera_af_lens");
+
+			if (node) {
+				kd_node = lens_device->of_node;
+				lens_device->of_node = node;
+
+				/*XIAOMI: add for getting vcamaf from fan53870_L6 --start*/
+				regVCAMTAF =
+					regulator_get(lens_device, "vcamtaf");
+				/*XIAOMI: add for getting vcamaf from fan53870_L6 --end*/
+
+				LOG_INF("[Init] regulator_get %p\n", regVCAMTAF);
+
+				lens_device->of_node = kd_node;
+			}else
+				LOG_INF("jianlong Get AF node fail");
+		}
+	} else if (Stage == 1) {
+		if (regVCAMTAF != NULL && g_regVCAMTAFEn == 0) {
+			//int Status = regulator_is_enabled(regVCAMAF);
+			int Status = 0;
+
+			LOG_INF("regulator_is_enabled %d\n", Status);
+
+			if (!Status) {
+				Status = regulator_set_voltage(
+					regVCAMTAF, 2800000, 2800000);
+
+				LOG_INF("regulator_set_voltage %d\n", Status);
+
+				if (Status != 0)
+					LOG_INF("regulator_set_voltage fail\n");
+
+				Status = regulator_enable(regVCAMTAF);
+				LOG_INF("regulator_enable %d\n", Status);
+
+				if (Status != 0)
+					LOG_INF("regulator_enable fail\n");
+
+				g_regVCAMTAFEn = 1;
+				usleep_range(5000, 5500);
+			} else {
+				LOG_INF("AF Power on\n");
+			}
+		}
+	} else {
+		if (regVCAMTAF != NULL && g_regVCAMTAFEn == 1) {
+			int Status = regulator_is_enabled(regVCAMTAF);
+
+			LOG_INF("regulator_is_enabled %d\n", Status);
+
+			if (Status) {
+				LOG_INF("Camera Power enable\n");
+
+				Status = regulator_disable(regVCAMTAF);
+				LOG_INF("regulator_disable %d\n", Status);
+				if (Status != 0)
+					LOG_INF("Fail to regulator_disable\n");
+			}
+			/* regulator_put(regVCAMAF); */
+			LOG_INF("AFIOC_S_SETPOWERCTRL regulator_put %p\n",
+				regVCAMTAF);
+			/* regVCAMAF = NULL; */
+			g_regVCAMTAFEn = 0;
+		}
+	}
+}
+#endif
 #endif
 
 /* Main jobs: */
@@ -477,7 +634,12 @@ static int AF_Open(struct inode *a_pstInode, struct file *a_pstFile)
 	spin_unlock(&g_AF_SpinLock);
 
 #if !defined(CONFIG_MTK_LEGACY)
+#if defined(CONFIG_MACH_MT6885)
+	TAFRegulatorCtrl(0);
+	TAFRegulatorCtrl(1);
+#else
 	AFRegulatorCtrl(1);
+#endif	
 #endif
 
 	/* OIS/EIS Timer & Workqueue */
@@ -520,7 +682,11 @@ static int AF_Release(struct inode *a_pstInode, struct file *a_pstFile)
 	}
 
 #if !defined(CONFIG_MTK_LEGACY)
+#if defined(CONFIG_MACH_MT6885)
+	TAFRegulatorCtrl(2);
+#else
 	AFRegulatorCtrl(2);
+#endif
 #endif
 
 	/* OIS/EIS Timer & Workqueue */
@@ -674,7 +840,10 @@ static int AF_i2c_probe(struct i2c_client *client,
 	spin_lock_init(&g_AF_SpinLock);
 
 #if !defined(CONFIG_MTK_LEGACY)
+#if defined(CONFIG_MACH_MT6885)
+#else
 	AFRegulatorCtrl(0);
+#endif
 #endif
 
 	LOG_INF("Attached!!\n");
