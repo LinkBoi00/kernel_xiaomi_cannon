@@ -39,6 +39,10 @@ ccflags-y += \
         -I$(FSTB_TOP)/ \
         -I$(COM_TOP)/include/ \
         -I$(EARA_JOB_TOP)/include/ \
-        -I$(VIDEOX_TOP)/ \
-        -I$(srctree)/drivers/gpu/drm/mediatek/ \
+        -I$(VIDEOX_TOP)/
 
+ifeq ($(CONFIG_DRM_MEDIATEK_CANNON), y)
+ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek_cannon/
+else
+ccflags-$(CONFIG_DRM_MEDIATEK) += -I$(srctree)/drivers/gpu/drm/mediatek/
+endif
