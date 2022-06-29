@@ -1,6 +1,10 @@
 
 subdir-ccflags-y += -I$(srctree)/drivers/misc/mediatek/typec/inc
 
-obj-$(CONFIG_TCPC_CLASS) += tcpc/
+ifeq ($(CONFIG_MTK_CHARGER_CANNON),y)
+	obj-$(CONFIG_TCPC_CLASS) += tcpc_cannon/
+else
+	obj-$(CONFIG_TCPC_CLASS) += tcpc/
+endif
 obj-$(CONFIG_MTK_USB_TYPEC_U3_MUX) += u3_switch/
 obj-$(CONFIG_MTK_USB_TYPEC_DP_MUX) += dp/
