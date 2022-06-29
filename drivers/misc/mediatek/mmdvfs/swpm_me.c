@@ -19,7 +19,10 @@
 /* For Power Model */
 #include <mtk_me_swpm_plat.h>
 #include <mtk_swpm_interface.h>
+
+#if defined(CONFIG_DRM_MEDIATEK_CANNON)
 #include <mtk_drm_crtc.h>
+#endif
 
 #ifdef SWPM_ME_ENABLE
 static bool swpm_enable = true;
