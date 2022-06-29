@@ -15,22 +15,6 @@
 #include "ufs.h"
 #include "ufshcd.h"
 
-#ifndef CONFIG_FPGA_EARLY_PORTING
-/* If SPM function not ready, comment this define */
-#define SPM_READY
-
-/* If CLKBUF function not ready, comment this define */
-#define CLKBUF_READY
-
-/* If UPMU function not ready, comment this define */
-#define UPMU_READY
-
-/* If srclkenRC function not ready, comment this define */
-/* #define SR_CLKEN_RC_READY */
-#endif
-
-#define HIE_CHANGE_KEY_IN_NORMAL_WORLD
-
 /*
  * Platform dependent quirks
  */
@@ -38,34 +22,26 @@
 /*
  * Platform dependent definitions
  */
-#ifdef CONFIG_FPGA_EARLY_PORTING
-/*
- * Bitfile fail in PWM mode, change to HS mode first.
- * If platform bitfile no this problem, can remove it.
- */
-/* #define PWM_FAIL_WORKAROUND */
-#endif
+enum {
+	REG_UFS_PERICFG             = 0x448,
+	REG_UFS_PERICFG_RST_N_BIT   = 3,
+};
 
 enum {
-	REG_UFSHCI_SW_RST_SET       = 0x130,
-	REG_UFSHCI_SW_RST_SET_BIT   = 15,
-	REG_UFSHCI_SW_RST_CLR       = 0x134,
-	REG_UFSHCI_SW_RST_CLR_BIT   = 15,
-
 	REG_UNIPRO_SW_RST_SET       = 0x140,
-	REG_UNIPRO_SW_RST_SET_BIT   = 7,
+	REG_UNIPRO_SW_RST_SET_BIT   = 4,
 	REG_UNIPRO_SW_RST_CLR       = 0x144,
-	REG_UNIPRO_SW_RST_CLR_BIT   = 7,
+	REG_UNIPRO_SW_RST_CLR_BIT   = 4,
 
-	REG_UFSPHY_SW_RST_SET       = 0x140,
-	REG_UFSPHY_SW_RST_SET_BIT   = 9,
-	REG_UFSPHY_SW_RST_CLR       = 0x144,
-	REG_UFSPHY_SW_RST_CLR_BIT   = 9,
+	REG_UFSHCI_SW_RST_SET       = 0x120,
+	REG_UFSHCI_SW_RST_SET_BIT   = 14,
+	REG_UFSHCI_SW_RST_CLR       = 0x124,
+	REG_UFSHCI_SW_RST_CLR_BIT   = 14,
 
-	REG_UFSCPT_SW_RST_SET       = 0x150,
-	REG_UFSCPT_SW_RST_SET_BIT   = 21,
-	REG_UFSCPT_SW_RST_CLR       = 0x154,
-	REG_UFSCPT_SW_RST_CLR_BIT   = 21,
+	REG_UFSCPT_SW_RST_SET       = 0x130,
+	REG_UFSCPT_SW_RST_SET_BIT   = 15,
+	REG_UFSCPT_SW_RST_CLR       = 0x134,
+	REG_UFSCPT_SW_RST_CLR_BIT   = 15,
 };
 
 enum {
@@ -97,9 +73,7 @@ int  ufs_mtk_pltfrm_suspend(struct ufs_hba *hba);
 void ufs_mtk_pltfrm_gpio_trigger_and_debugInfo_dump(struct ufs_hba *hba);
 
 #ifdef MTK_UFS_HQA
-#ifdef UPMU_READY
 #include <upmu_common.h>
-#endif
 void random_delay(struct ufs_hba *hba);
 void wdt_pmic_full_reset(struct ufs_hba *hba);
 extern unsigned short pmic_set_register_value_nolock(
