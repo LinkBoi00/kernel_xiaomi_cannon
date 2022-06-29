@@ -13,7 +13,11 @@
 
 ccflags-y += -I$(srctree)/drivers/clk/mediatek
 ccflags-y += -I$(srctree)/drivers/devfreq
+ifeq ($(CONFIG_DRM_MEDIATEK_CANNON), y)
+ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek_cannon/
+else
 ccflags-y += -I$(srctree)/drivers/gpu/drm/mediatek/
+endif
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/base/power/include/swpm_v1/
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/freqhopping/
