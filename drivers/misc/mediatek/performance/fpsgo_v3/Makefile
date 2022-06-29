@@ -39,6 +39,6 @@ ccflags-y += \
         -I$(FSTB_TOP)/ \
         -I$(COM_TOP)/include/ \
         -I$(EARA_JOB_TOP)/include/ \
-        -I$(VIDEOX_TOP)/ \
-        -I$(srctree)/drivers/gpu/drm/mediatek/ \
+        -I$(VIDEOX_TOP)/
 
+ccflags-$(CONFIG_DRM_MEDIATEK_CANNON) += -I$(srctree)/drivers/gpu/drm/mediatek_cannon/
