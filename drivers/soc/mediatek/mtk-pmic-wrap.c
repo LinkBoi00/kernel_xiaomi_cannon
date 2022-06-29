@@ -21,9 +21,8 @@
 #include <linux/platform_device.h>
 #include <linux/regmap.h>
 #include <linux/reset.h>
-#include <linux/sched/clock.h>
-#include <linux/soc/mediatek/pmic_wrap.h>
 #include <mt-plat/aee.h>
+#include <linux/sched/clock.h>
 
 #define PWRAP_MT8135_BRIDGE_IORD_ARB_EN		0x4
 #define PWRAP_MT8135_BRIDGE_WACS3_EN		0x10
@@ -618,9 +617,6 @@ enum pwrap_regs {
 	PMIF_SPI_PMIF_PMIC_ALL_ACC_VIO_INFO_1,
 	/* MT6833/MT6877*/
 	PMIF_SPI_PMIF_PMIC_ALL_ACC_VIO_INFO_2,
-	/* Others */
-	PMICSPI_MST_SPIWRAP_EN,
-
 	/* MT8167 only regs */
 	PWRAP_SW_RST,
 };
@@ -1636,18 +1632,6 @@ static int mt6877_regs[] = {
 	[PMIF_SPI_PMIF_PMIC_ALL_ACC_VIO_INFO_2] = 0x9AC,
 };
 
-static int mt6885_regs1[] = {
-	[PMICSPI_MST_SPIWRAP_EN] =		0x14,
-};
-
-static int mt6873_regs1[] = {
-	[PMICSPI_MST_SPIWRAP_EN] =		0x14,
-};
-
-static int mt6853_regs1[] = {
-	[PMICSPI_MST_SPIWRAP_EN] =		0x14,
-};
-
 static int mt6833_regs1[] = {
 	[PMICSPI_MST_SPIWRAP_EN] =		0x14,
 };
@@ -2086,7 +2070,6 @@ struct pwrap_slv_type {
 struct pmic_wrapper {
 	struct device *dev;
 	void __iomem *base;
-	void __iomem *base1;
 	struct regmap *regmap;
 	const struct pmic_wrapper_type *master;
 	const struct pwrap_slv_type *slave;
@@ -2104,7 +2087,6 @@ struct pmic_wrapper {
 
 struct pmic_wrapper_type {
 	int *regs;
-	int *regs1;
 	enum pwrap_type type;
 	u32 arb_en_all;
 	u32 int_en_all;
@@ -2895,12 +2877,6 @@ static u32 pwrap_readl(struct pmic_wrapper *wrp, enum pwrap_regs reg)
 static void pwrap_writel(struct pmic_wrapper *wrp, u32 val, enum pwrap_regs reg)
 {
 	writel(val, wrp->base + wrp->master->regs[reg]);
-}
-
-static void pwrap_writel_1(struct pmic_wrapper *wrp, u32 val
-				, enum pwrap_regs reg)
-{
-	writel(val, wrp->base1 + wrp->master->regs1[reg]);
 }
 
 static bool pwrap_is_fsm_idle(struct pmic_wrapper *wrp)
@@ -4123,7 +4099,6 @@ static struct pmic_wrapper_type pwrap_mt6877 = {
 
 static struct pmic_wrapper_type pwrap_mt6853 = {
 	.regs = mt6853_regs,
-	.regs1 = mt6853_regs1,
 	.type = PWRAP_MT6853,
 	.arb_en_all = 0x777f,
 	.int_en_all = 0x180000,
@@ -4139,7 +4114,6 @@ static struct pmic_wrapper_type pwrap_mt6853 = {
 
 static struct pmic_wrapper_type pwrap_mt6873 = {
 	.regs = mt6873_regs,
-	.regs1 = mt6873_regs1,
 	.type = PWRAP_MT6873,
 	.arb_en_all = 0x777f,
 	.int_en_all = 0x30,
@@ -4155,7 +4129,6 @@ static struct pmic_wrapper_type pwrap_mt6873 = {
 
 static struct pmic_wrapper_type pwrap_mt6885 = {
 	.regs = mt6885_regs,
-	.regs1 = mt6885_regs1,
 	.type = PWRAP_MT6885,
 	.arb_en_all = 0x777f,
 	.int_en_all = 0x30,
@@ -4368,14 +4341,6 @@ static int pwrap_probe(struct platform_device *pdev)
 	wrp->base = devm_ioremap_resource(wrp->dev, res);
 	if (IS_ERR(wrp->base))
 		return PTR_ERR(wrp->base);
-
-	if (HAS_CAP(wrp->master->caps, PWRAP_CAP_ARB_V3)) {
-		res = platform_get_resource_byname(pdev,
-						   IORESOURCE_MEM, "spi_mst");
-		wrp->base1 = devm_ioremap_resource(wrp->dev, res);
-		if (IS_ERR(wrp->base1))
-			return PTR_ERR(wrp->base1);
-	}
 
 	if (HAS_CAP(wrp->master->caps, PWRAP_CAP_RESET)) {
 		wrp->rstc = devm_reset_control_get(wrp->dev, "pwrap");
@@ -4635,15 +4600,6 @@ static int __init pwrap_soc_init(void)
 	return 0;
 }
 
-void pwrap_disable(void)
-{
-	dev_dbg(wrp->dev, "pmic wrap disable\n");
-	if (HAS_CAP(wrp->master->caps, PWRAP_CAP_ARB_V3))
-		pwrap_writel_1(wrp, 0, PMICSPI_MST_SPIWRAP_EN);
-	else
-		pwrap_writel(wrp, 0, PWRAP_WRAP_EN);
-	udelay(10);
-}
 postcore_initcall(pwrap_soc_init);
 
 MODULE_AUTHOR("Flora Fu, MediaTek");

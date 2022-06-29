@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #include <linux/completion.h>
@@ -87,6 +88,7 @@ struct cmdq_flush_item {
 	cmdq_async_flush_cb err_cb;
 	void *err_data;
 	s32 err;
+	bool done;
 };
 
 static s8 cmdq_subsys_base_to_id(struct cmdq_base *clt_base, u32 base)
@@ -179,7 +181,7 @@ struct cmdq_client *cmdq_mbox_create(struct device *dev, int index)
 	if (IS_ERR(client->chan)) {
 		cmdq_err("channel request fail:%ld, idx:%d",
 			PTR_ERR(client->chan), index);
-		dump_stack();
+		//dump_stack();
 		kfree(client);
 		return NULL;
 	}
@@ -1076,8 +1078,6 @@ s32 cmdq_pkt_sleep(struct cmdq_pkt *pkt, u32 tick, u16 reg_gpr)
 	struct cmdq_operand lop, rop;
 	const u32 timeout_en = cmdq_mbox_get_base_pa(cl->chan) +
 		CMDQ_TPR_TIMEOUT_EN;
-	u32 end_addr_mark;
-	u64 *inst;
 
 	/* set target gpr value to max to avoid event trigger
 	 * before new value write to gpr
@@ -1116,31 +1116,7 @@ s32 cmdq_pkt_sleep(struct cmdq_pkt *pkt, u32 tick, u16 reg_gpr)
 		cmdq_pkt_logic_command(pkt, CMDQ_LOGIC_ADD,
 			CMDQ_GPR_CNT_ID + reg_gpr, &lop, &rop);
 	}
-	cmdq_pkt_poll_gpr_check(pkt, reg_gpr, 16);
-	cmdq_pkt_assign_command(pkt, CMDQ_SPR_FOR_TEMP, 0);
-	end_addr_mark = pkt->cmd_buf_size - 8;
-
-	lop.reg = true;
-	lop.idx = CMDQ_TPR_ID;
-	rop.reg = true;
-	rop.idx = CMDQ_GPR_CNT_ID + reg_gpr;
-	cmdq_pkt_cond_jump_abs(pkt, CMDQ_SPR_FOR_TEMP, &lop, &rop,
-		CMDQ_GREATER_THAN_AND_EQUAL);
-
-	cmdq_pkt_assign_command(pkt, CMDQ_CPR_SLP_GPR_MAX, 0xFFFFFF00);
-	lop.reg = true;
-	lop.idx = CMDQ_GPR_CNT_ID + reg_gpr;
-	rop.reg = true;
-	rop.idx = CMDQ_CPR_SLP_GPR_MAX;
-	cmdq_pkt_cond_jump_abs(pkt, CMDQ_SPR_FOR_TEMP, &lop, &rop,
-		CMDQ_GREATER_THAN_AND_EQUAL);
-
 	cmdq_pkt_wfe(pkt, event);
-
-	/* read current buffer pa as end mark and fill preview assign */
-	inst = cmdq_pkt_get_va_by_offset(pkt, end_addr_mark);
-	if (inst)
-		*inst |= CMDQ_REG_SHIFT_ADDR(cmdq_pkt_get_curr_buf_pa(pkt));
 
 	lop.reg = true;
 	lop.idx = CMDQ_CPR_TPR_MASK;
@@ -1166,7 +1142,6 @@ s32 cmdq_pkt_poll_timeout(struct cmdq_pkt *pkt, u32 value, u8 subsys,
 	struct cmdq_instruction *inst = NULL;
 	bool absolute = true;
 
-	cmdq_pkt_poll_gpr_check(pkt, reg_gpr, -1);
 	if (pkt->avail_buf_size > PAGE_SIZE)
 		absolute = false;
 
@@ -1207,9 +1182,6 @@ s32 cmdq_pkt_poll_timeout(struct cmdq_pkt *pkt, u32 value, u8 subsys,
 	}
 
 	/* assign temp spr as empty, shoudl fill in end addr later */
-	if (unlikely(!pkt->avail_buf_size))
-		if (cmdq_pkt_add_cmd_buffer(pkt) < 0)
-			return -ENOMEM;
 	end_addr_mark = pkt->cmd_buf_size;
 	cmdq_pkt_assign_command(pkt, reg_tmp, 0);
 
@@ -1601,6 +1573,15 @@ static void cmdq_pkt_err_irq_dump(struct cmdq_pkt *pkt)
 			mod, cmdq_util_hw_name(client->chan), pc, thread_id);
 	}
 
+	if (thread_id == 3) { /* trigger loop */
+		struct cmdq_client *client = (struct cmdq_client *)pkt->cl;
+		struct cmdq_thread *thread =
+			(struct cmdq_thread *)client->chan->con_priv;
+
+		cmdq_thread_dump_spr(thread);
+		cmdq_dump_pkt(pkt, ~0, true);
+	}
+
 	cmdq_util_error_disable();
 	cmdq_util_dump_unlock();
 }
@@ -1620,6 +1601,7 @@ static void cmdq_flush_async_cb(struct cmdq_cb_data data)
 	if (item->cb)
 		item->cb(user_data);
 	complete(&pkt->cmplt);
+	item->done = true;
 }
 #endif
 
