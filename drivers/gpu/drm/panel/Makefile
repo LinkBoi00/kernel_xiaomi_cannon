@@ -1,8 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0
 
+ifeq ($(CONFIG_DRM_MEDIATEK_CANNON),y)
 ccflags-y += -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/mach/ \
              -I$(srctree)/drivers/misc/mediatek/include/mt-plat/$(MTK_PLATFORM)/include/ \
-             -I$(srctree)/drivers/misc/mediatek/include/mt-plat \
+             -I$(srctree)/drivers/misc/mediatek/include/mt-plat
+endif
 
 obj-$(CONFIG_DRM_PANEL_LVDS) += panel-lvds.o
 obj-$(CONFIG_DRM_PANEL_SIMPLE) += panel-simple.o
@@ -48,9 +50,11 @@ obj-$(CONFIG_DRM_PANEL_K6873V1_64_ALPHA_VDO_02) += k6873v1_64_alpha/panel-k6873v
 obj-$(CONFIG_DRM_PANEL_HX_NT36682C_DPHY_VDO) += panel-hx-nt36682c-dphy-vdo.o
 obj-$(CONFIG_DRM_PANEL_TIANMA_NT36672C_VDO_120HZ) += panel-tianma-nt36672c-vdo-120hz.o
 obj-$(CONFIG_DRM_PANEL_TIANMA_NT36672C_VDO_144HZ) += panel-tianma-nt36672c-vdo-144hz.o
+ifeq ($(CONFIG_DRM_MEDIATEK_CANNON),y)
 obj-$(CONFIG_DRM_PANEL_J22_42_02_0A_VDO) += panel_j22_42_02_0a_vdo.o
 obj-$(CONFIG_DRM_PANEL_J22_43_03_0B_VDO) += panel_j22_43_03_0b_vdo.o
 obj-$(CONFIG_DRM_PANEL_J22_43_03_0C_VDO) += panel_j22_43_03_0c_vdo.o
+endif
 obj-$(CONFIG_DRM_PANEL_TIANMA_NT36672C_CPHY_VDO_90HZ_RT4801_HFP) += panel-tianma-nt36672c-cphy-vdo-90hz-rt4801-hfp.o
 obj-$(CONFIG_DRM_PANEL_JDI_NT36672C_CPHY_VDO_90HZ_RT4801_HFP) += panel-jdi-nt36672c-cphy-vdo-90hz-rt4801-hfp.o
 obj-$(CONFIG_DRM_PANEL_TIANMA_NT36672E_VDO_120HZ_HFP) += panel-tianma-nt36672e-vdo-120hz-hfp.o

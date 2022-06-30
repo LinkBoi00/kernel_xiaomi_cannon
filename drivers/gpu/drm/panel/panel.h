@@ -23,7 +23,7 @@
 #endif
 
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT
-#include "../mediatek/mtk_corner_pattern/mtk_hw_roundedpattern_samsung_s6e8fc01.h"
+#include "../mediatek_cannon/mtk_corner_pattern/mtk_hw_roundedpattern_samsung_s6e8fc01.h"
 #endif
 struct lcm {
 	struct device *dev;
