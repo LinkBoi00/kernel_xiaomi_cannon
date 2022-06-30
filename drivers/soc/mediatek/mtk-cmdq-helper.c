@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: GPL-2.0
 /*
  * Copyright (c) 2015 MediaTek Inc.
+ * Copyright (C) 2021 XiaoMi, Inc.
  */
 
 #include <linux/completion.h>
@@ -179,7 +180,7 @@ struct cmdq_client *cmdq_mbox_create(struct device *dev, int index)
 	if (IS_ERR(client->chan)) {
 		cmdq_err("channel request fail:%ld, idx:%d",
 			PTR_ERR(client->chan), index);
-		dump_stack();
+		//dump_stack();
 		kfree(client);
 		return NULL;
 	}
@@ -1599,6 +1600,15 @@ static void cmdq_pkt_err_irq_dump(struct cmdq_pkt *pkt)
 		cmdq_util_aee(mod,
 			"%s(%s) instruction not available pc:%#llx thread:%d",
 			mod, cmdq_util_hw_name(client->chan), pc, thread_id);
+	}
+
+	if (thread_id == 3) { /* trigger loop */
+		struct cmdq_client *client = (struct cmdq_client *)pkt->cl;
+		struct cmdq_thread *thread =
+			(struct cmdq_thread *)client->chan->con_priv;
+
+		cmdq_thread_dump_spr(thread);
+		cmdq_dump_pkt(pkt, ~0, true);
 	}
 
 	cmdq_util_error_disable();
