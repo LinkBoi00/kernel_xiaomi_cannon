@@ -799,12 +799,12 @@ static int wdma_config_yuv420(struct mtk_ddp_comp *comp,
 		cmdq_sec_pkt_write_reg(handle,
 			comp->regs_pa + DISP_REG_WDMA_DST_ADDR1,
 			dstAddress, CMDQ_IWC_H_2_MVA,
-			u_off, u_size, 0);
+			u_off, u_size, 0, 0);
 		if (has_v)
 			cmdq_sec_pkt_write_reg(handle,
 				comp->regs_pa + DISP_REG_WDMA_DST_ADDR2,
 				dstAddress, CMDQ_IWC_H_2_MVA,
-				v_off, u_size, 0);
+				v_off, u_size, 0, 0);
 #endif
 	}
 	mtk_ddp_write_mask(comp, u_stride,
@@ -915,7 +915,7 @@ static void mtk_wdma_config(struct mtk_ddp_comp *comp,
 		cmdq_sec_pkt_write_reg(handle,
 				comp->regs_pa + DISP_REG_WDMA_DST_ADDR0,
 				addr & 0xFFFFFFFFU, CMDQ_IWC_H_2_MVA,
-				0, buffer_size, 0);
+				0, buffer_size, 0, 0);
 #endif
 	}
 	mtk_wdma_golden_setting(comp, cfg, handle);

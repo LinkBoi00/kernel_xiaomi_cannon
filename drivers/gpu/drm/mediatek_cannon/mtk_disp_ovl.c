@@ -1318,7 +1318,7 @@ static void _ovl_common_config(struct mtk_ddp_comp *comp, unsigned int idx,
 				meta_type = CMDQ_IWC_H_2_MVA;
 				cmdq_sec_pkt_write_reg(handle, regs_addr,
 					pending->addr, meta_type,
-					offset, size, 0);
+					offset, size, 0, 0);
 				cmdq_pkt_write(handle, comp->cmdq_base,
 					comp->regs_pa + OVL_SECURE,
 					BIT(id + EXT_SECURE_OFFSET),
@@ -1376,7 +1376,7 @@ static void _ovl_common_config(struct mtk_ddp_comp *comp, unsigned int idx,
 				meta_type = CMDQ_IWC_H_2_MVA;
 				cmdq_sec_pkt_write_reg(handle, regs_addr,
 					pending->addr, meta_type,
-					offset, size, 0);
+					offset, size, 0, 0);
 				cmdq_pkt_write(handle, comp->cmdq_base,
 					comp->regs_pa + OVL_SECURE,
 					BIT(lye_idx), BIT(lye_idx));
@@ -1764,7 +1764,7 @@ static bool compr_l_config_PVRIC_V3_1(struct mtk_ddp_comp *comp,
 				size = buf_size;
 				meta_type = CMDQ_IWC_H_2_MVA;
 				cmdq_sec_pkt_write_reg(handle, regs_addr,
-					pending->addr, meta_type, 0, size, 0);
+					pending->addr, meta_type, 0, size, 0, 0);
 				cmdq_pkt_write(handle, comp->cmdq_base,
 					comp->regs_pa + OVL_SECURE,
 					BIT(id + EXT_SECURE_OFFSET),
@@ -1819,7 +1819,7 @@ static bool compr_l_config_PVRIC_V3_1(struct mtk_ddp_comp *comp,
 				size = buf_size;
 				meta_type = CMDQ_IWC_H_2_MVA;
 				cmdq_sec_pkt_write_reg(handle, regs_addr,
-					pending->addr, meta_type, 0, size, 0);
+					pending->addr, meta_type, 0, size, 0, 0);
 				cmdq_pkt_write(handle, comp->cmdq_base,
 					comp->regs_pa + OVL_SECURE,
 					BIT(lye_idx), BIT(lye_idx));
@@ -2053,7 +2053,7 @@ static bool compr_l_config_AFBC_V1_2(struct mtk_ddp_comp *comp,
 				size = buf_size;
 				meta_type = CMDQ_IWC_H_2_MVA;
 				cmdq_sec_pkt_write_reg(handle, regs_addr,
-					pending->addr, meta_type, 0, size, 0);
+					pending->addr, meta_type, 0, size, 0, 0);
 				cmdq_pkt_write(handle, comp->cmdq_base,
 					comp->regs_pa + OVL_SECURE,
 					BIT(id + EXT_SECURE_OFFSET),
@@ -2115,7 +2115,7 @@ static bool compr_l_config_AFBC_V1_2(struct mtk_ddp_comp *comp,
 				size = buf_size;
 				meta_type = CMDQ_IWC_H_2_MVA;
 				cmdq_sec_pkt_write_reg(handle, regs_addr,
-					pending->addr, meta_type, 0, size, 0);
+					pending->addr, meta_type, 0, size, 0, 0);
 				cmdq_pkt_write(handle, comp->cmdq_base,
 					comp->regs_pa + OVL_SECURE,
 					BIT(lye_idx), BIT(lye_idx));
