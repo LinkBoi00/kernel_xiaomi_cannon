@@ -34,13 +34,13 @@
 
 #define CONFIG_MTK_PANEL_EXT
 #if defined(CONFIG_MTK_PANEL_EXT)
-#include "../mediatek/mtk_panel_ext.h"
-#include "../mediatek/mtk_log.h"
-#include "../mediatek/mtk_drm_graphics_base.h"
+#include "../mediatek_cannon/mtk_panel_ext.h"
+#include "../mediatek_cannon/mtk_log.h"
+#include "../mediatek_cannon/mtk_drm_graphics_base.h"
 #endif
 
 #ifdef CONFIG_HWCONF_MANAGER
-#include "../mediatek/dsi_panel_mi_count.h"
+#include "../mediatek_cannon/dsi_panel_mi_count.h"
 #endif
 
 #ifdef CONFIG_MTK_ROUND_CORNER_SUPPORT

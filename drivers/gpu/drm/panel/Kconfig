@@ -239,6 +239,8 @@ config DRM_PANEL_TRULY_TD4330_VDO
 	  and uses 24-bits RGB per pixel. It provides a MIPI DSI interface
 	  to host.
 
+if DRM_MEDIATEK_CANNON
+
 config DRM_PANEL_J22_42_02_0A_VDO
 	tristate "J22 42 02 0A video mode panel"
 	depends on OF
@@ -271,6 +273,8 @@ config DRM_PANEL_J22_43_03_0C_VDO
           mode Full HD Plus panel. The panel has a 1080x2340 resolution
           and uses 24-bits RGB per pixel. It provides a MIPI DSI interface
           to host.
+
+endif # DRM_MEDIATEK_CANNON
 
 config DRM_PANEL_TRULY_TD4330_VDO_FAKE_WCG
 	tristate "TRULY  FHD+ video mode fake wcg panel"
