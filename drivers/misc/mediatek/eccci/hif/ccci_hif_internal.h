@@ -248,7 +248,6 @@ struct dvfs_ref {
 	u8 rps;
 };
 
-struct dvfs_ref *mtk_ccci_get_dvfs_table(int is_ul, int *tbl_num);
-
+struct dvfs_ref *mtk_ccci_get_dvfs_table(int *tbl_num);
 
 #endif
