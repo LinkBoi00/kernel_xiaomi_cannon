@@ -29,7 +29,6 @@
 #include "xgf.h"
 #include "eara_job.h"
 #include "syslimiter.h"
-#include "uboost.h"
 
 #ifdef CONFIG_DRM_MEDIATEK
 #include "mtk_drm_arr.h"
@@ -39,6 +38,8 @@
 
 #define CREATE_TRACE_POINTS
 #include <trace/events/fpsgo.h>
+
+#define API_READY 0
 
 #define TARGET_UNLIMITED_FPS 240
 
@@ -119,7 +120,6 @@ static void fpsgo_notifier_wq_cb_vsync(unsigned long long ts)
 		return;
 
 	fpsgo_ctrl2fbt_vsync(ts);
-	fpsgo_uboost_traverse(ts);
 }
 
 static void fpsgo_notifier_wq_cb_dfrc_fps(int dfrc_fps)
@@ -656,6 +656,9 @@ void dfrc_fps_limit_cb(unsigned int fps_limit)
 	unsigned int vTmp = TARGET_UNLIMITED_FPS;
 	struct FPSGO_NOTIFIER_PUSH_TAG *vpPush;
 
+	if (!fpsgo_is_enable())
+		return;
+
 	if (fps_limit > 0 && fps_limit <= TARGET_UNLIMITED_FPS)
 		vTmp = fps_limit;
 
@@ -789,12 +792,13 @@ static void __exit fpsgo_exit(void)
 		destroy_workqueue(g_psNotifyWorkQueue);
 		g_psNotifyWorkQueue = NULL;
 	}
-#if defined(CONFIG_DRM_MEDIATEK)
+#ifdef CONFIG_DRM_MEDIATEK
 	drm_unregister_fps_chg_callback(dfrc_fps_limit_cb);
-#elif defined(CONFIG_MTK_HIGH_FRAME_RATE)
+#else
+#if API_READY
 	disp_unregister_fps_chg_callback(dfrc_fps_limit_cb);
 #endif
-	fpsgo_uboost_exit();
+#endif
 	fbt_cpu_exit();
 	mtk_fstb_exit();
 	fpsgo_composer_exit();
@@ -807,7 +811,7 @@ static int __init fpsgo_init(void)
 	fpsgo_sysfs_init();
 
 	g_psNotifyWorkQueue =
-		alloc_ordered_workqueue("%s", WQ_MEM_RECLAIM | WQ_HIGHPRI, "fpsgo_notifier_wq");
+		create_singlethread_workqueue("fpsgo_notifier_wq");
 
 	if (g_psNotifyWorkQueue == NULL)
 		return -EFAULT;
@@ -821,7 +825,6 @@ static int __init fpsgo_init(void)
 	fbt_cpu_init();
 	mtk_fstb_init();
 	fpsgo_composer_init();
-	fpsgo_uboost_init();
 
 	fpsgo_switch_enable(1);
 
@@ -840,10 +843,12 @@ static int __init fpsgo_init(void)
 	fpsgo_get_nn_priority_fp = fpsgo_get_nn_priority;
 	fpsgo_get_nn_ttime_fp = fpsgo_get_nn_ttime;
 
-#if defined(CONFIG_DRM_MEDIATEK)
+#ifdef CONFIG_DRM_MEDIATEK
 	drm_register_fps_chg_callback(dfrc_fps_limit_cb);
-#elif defined(CONFIG_MTK_HIGH_FRAME_RATE)
+#else
+#if API_READY
 	disp_register_fps_chg_callback(dfrc_fps_limit_cb);
+#endif
 #endif
 
 	return 0;
